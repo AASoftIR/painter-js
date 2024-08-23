@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>🎨Paint Simple - aasoft</title>
+		<link rel="stylesheet" href="style.css" />
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.3.1/css/ion.rangeSlider.min.css"
+			integrity="sha512-NWCafukXClS6fKch6bSMl/WvPzZrD1OGMf1oMAnFYXSSKZ7hgeswls+r4SdK4bFJauVwmvFf7HlMwji2TsjROA=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+		/>
+		<script
+			src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+			integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+		></script>
+		<script src="https://cdn.jsdelivr.net/npm/@jaames/iro@5"></script>
+		<script
+			src="https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.3.1/js/ion.rangeSlider.min.js"
+			integrity="sha512-kZsqvmw94Y8hyhwtWZJvDtobwQ9pLhF1DuIvcqSuracbRn6WJs1Ih+04fpH/8d1CFKysp7XA1tR0Aa2jKLTQUg=="
+			crossorigin="anonymous"
+			referrerpolicy="no-referrer"
+		></script>
+	</head>
+	<body class="h-min w-min overflow-hidden">
+		<a
+			href="#!"
+			class="fixed top-4 left-4 p-4 block md:hidden text-lg text-white peer"
+			>⛓</a
+		>
+		<div
+			class="fixed h-screen w-auto py-4 px-4 top-0 left-0 bg-white/30 grid grid-cols-1 gap-y-3 z-[100000] auto-rows-min translate-x-[-100%] md:translate-x-0 transition-all peer-focus:translate-x-0"
+			style="backdrop-filter: blur(5px)"
+		>
+			<button class="w-full rounded-full p-2 bg-black text-white mode">
+				Eraser
+			</button>
+			<div id="picker"></div>
+
+			<div id="demo_0"></div>
+			<button class="w-full rounded-full p-2 bg-black text-white clear">
+				🎬
+			</button>
+			<button class="w-full rounded-full p-2 bg-black text-blue-600 download">
+				⬇
+			</button>
+			<button class="w-full rounded-full p-2 bg-black text-blue-600 save">
+				🔼
+			</button>
+		</div>
+		<input
+			type="color"
+			class="w-16 h-16 !outline-none border-4 border-white/80 !ring-0 border-double rounded-full appearance-none absolute top-3 right-3 bg"
+		/>
+		<canvas class="w-screen h-screen"></canvas>
+		<a href="#!" id="img" class="hidden" download></a>
+
+		<script>
+			const canvas = document.querySelector("canvas");
+			const ctx = canvas.getContext("2d");
+			let mode = "brush";
+			let color = "#00ff00";
+			let brushSize = 1;
+			let x = 0;
+			let y = 0;
+			let xTo, yTo;
+			let clicked = false;
+			let backgroundColor = "rgb(10, 2, 45)";
+			let localImg = localStorage.getItem("img") || null;
+
+			// Set initial canvas size
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+			canvas.style.backgroundColor = backgroundColor;
+			// Set initial background color
+			ctx.fillStyle = backgroundColor;
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			if (localImg && localImg != {} && localImg.length > 0) {
+				const img = new Image();
+				img.onload = () => {
+					// Draw the image onto the canvas when it has loaded
+					ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+				};
+				img.src = JSON.parse(localImg);
+			}
+			document.querySelector(".mode").addEventListener("click", (e) => {
+				if (e.target.textContent.trim() == "Eraser") {
+					e.target.textContent = "Brush";
+					color = backgroundColor;
+				} else {
+					e.target.textContent = "Eraser";
+					color == backgroundColor ? (color = "#00ff00") : "";
+				}
+			});
+			var colorPicker = new iro.ColorPicker("#picker", {
+				color: "#00ff00",
+				sliderSize: 25,
+				width: 150,
+			});
+
+			colorPicker.on("color:change", (c) => (color = c.hexString));
+
+			$("#demo_0").ionRangeSlider({
+				skin: "big",
+				min: 1,
+				max: 100,
+				from: 1,
+				onChange: function (data) {
+					brushSize = data.from;
+				},
+			});
+
+			document.querySelector(".clear").addEventListener("click", () => {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				// Reset the background color after clearing
+				ctx.fillStyle = backgroundColor;
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+			});
+
+			document.querySelector(".save").addEventListener("click", () => {
+				// Convert the canvas content to a data URL (base64 encoded string)
+				let val = canvas.toDataURL("image/png");
+
+				try {
+					// Try saving the data URL to localStorage
+					localStorage.setItem("img", JSON.stringify(val));
+					console.log("Image saved to localStorage.");
+				} catch (e) {
+					// If an error occurs (e.g., storage limit exceeded), log the error
+					console.error("Storage quota exceeded", e);
+					alert("Unable to save image; storage limit exceeded.");
+				}
+			});
+
+			document.querySelector(".bg").addEventListener("input", (e) => {
+				console.log(e.target.value);
+				backgroundColor = e.target.value; // Update background color variable
+				// Clear the entire canvas
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				canvas.style.backgroundColor = backgroundColor;
+
+				// Fill the entire canvas with the new background color
+				ctx.fillStyle = backgroundColor;
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+			});
+			document.querySelector(".download").addEventListener("click", () => {
+				let val = canvas.toDataURL("image/png");
+				let a = document.querySelector("#img");
+				a.href = val;
+				a.click();
+			});
+
+			window.addEventListener("resize", () => {
+				// Create an off-screen canvas for temporary storage
+				const bufferCanvas = document.createElement("canvas");
+				const bufferCtx = bufferCanvas.getContext("2d");
+
+				// Set buffer canvas size to match the current canvas size
+				bufferCanvas.width = canvas.width;
+				bufferCanvas.height = canvas.height;
+
+				// Copy the content from the current canvas to the buffer canvas
+				bufferCtx.drawImage(canvas, 0, 0);
+
+				// Resize the canvas to new window dimensions
+				canvas.width = window.innerWidth;
+				canvas.height = window.innerHeight;
+
+				// Set the background color after resizing
+				ctx.fillStyle = backgroundColor;
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+				// Draw the content from the buffer back to the main canvas
+				ctx.drawImage(bufferCanvas, 0, 0);
+			});
+
+			canvas.addEventListener("mousedown", (e) => {
+				x = e.offsetX - canvas.getBoundingClientRect().x;
+				y = e.offsetY - canvas.getBoundingClientRect().y;
+				clicked = true;
+				ctx.moveTo(x, y);
+				ctx.beginPath();
+				ctx.lineWidth = brushSize;
+				ctx.strokeStyle = color;
+				ctx.lineCap = "round"; // Smooth line ends
+				ctx.lineJoin = "round"; // Smooth line joins
+			});
+
+			canvas.addEventListener("mousemove", (e) => {
+				xTo = e.offsetX - canvas.getBoundingClientRect().x;
+				yTo = e.offsetY - canvas.getBoundingClientRect().y;
+				if (mode === "brush" && clicked) {
+					ctx.lineTo(xTo, yTo);
+					ctx.stroke();
+				}
+			});
+
+			canvas.addEventListener("mouseup", (e) => {
+				clicked = false;
+			});
+		</script>
+	</body>
+</html>
