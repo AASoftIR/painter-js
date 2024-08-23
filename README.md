@@ -1,6 +1,6 @@
 # 🎨 Paint Simple - aasoft
 
-**[👉 Live Demo on GitHub Pages](https://your-github-username.github.io/paint-simple/)**
+**[👉 Live Demo on GitHub Pages](https://https://aasoftir.github.io/painter-js/)**
 
 Welcome to **Paint Simple**! This is the **simplest** online painting tool you'll ever use. No fuss, just pure creative freedom! 🖌️
 
