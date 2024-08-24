@@ -25,6 +25,21 @@
 			crossorigin="anonymous"
 			referrerpolicy="no-referrer"
 		></script>
+		<style>
+			* {
+				cursor: none;
+			}
+			.mouse {
+				position: absolute;
+				width: 16px; /* Default size of cursor */
+				height: 16px;
+				border-radius: 50%;
+				background-color: transparent;
+				border: 2px solid white;
+				pointer-events: none;
+				transition: width 0.1s, height 0.1s;
+			}
+		</style>
 	</head>
 	<body class="h-min w-min overflow-hidden">
 		<a
@@ -58,7 +73,7 @@
 		/>
 		<canvas class="w-screen h-screen"></canvas>
 		<a href="#!" id="img" class="hidden" download></a>
-
+		<div class="mouse"></div>
 		<script>
 			const canvas = document.querySelector("canvas");
 			const ctx = canvas.getContext("2d");
@@ -71,6 +86,23 @@
 			let clicked = false;
 			let backgroundColor = "rgb(10, 2, 45)";
 			let localImg = localStorage.getItem("img") || null;
+
+			window.addEventListener("mousemove", (e) => {
+				let m = document.querySelector(".mouse");
+				let offsetX = m.offsetWidth / 2;
+				let offsetY = m.offsetHeight / 2;
+
+				m.style.top = e.clientY - offsetY + "px";
+				m.style.left = e.clientX - offsetX + "px";
+
+				// Update drawing position
+				if (mode === "brush" && clicked) {
+					xTo = e.clientX - canvas.getBoundingClientRect().left;
+					yTo = e.clientY - canvas.getBoundingClientRect().top;
+					ctx.lineTo(xTo, yTo);
+					ctx.stroke();
+				}
+			});
 
 			// Set initial canvas size
 			canvas.width = window.innerWidth;
@@ -111,6 +143,8 @@
 				from: 1,
 				onChange: function (data) {
 					brushSize = data.from;
+					document.querySelector(".mouse").style.width = brushSize + "px";
+					document.querySelector(".mouse").style.height = brushSize + "px";
 				},
 			});
 
